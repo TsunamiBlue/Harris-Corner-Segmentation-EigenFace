@@ -1,0 +1,82 @@
+
+def my_kmeans(image, centroid_num, using_coords=True, using_kmeanspp=False,iteration_num=10):
+    """
+    my k-mean clustering algorithm as well as some adv args
+    :param image: np array of 3 channels
+    :param centroid_num: number of centroids, default 6
+    :param using_coords: whether to consider the coords of the pixel when clustering
+    :param using_kmeanspp: whether to use k-means++ when initialization
+    :param iteration_num: number of iterations, default 10
+    :return: final clusters
+    """
+    clusters = dict()
+    image_shape = image.shape
+    assignments = np.zeros(image_shape[:2])
+    assignments -= 2
+    # initialize
+    if using_kmeanspp:
+        if using_coords:
+            images_coords = []
+            for i in range(image_shape[0]):
+                tmp = []
+                for j in range(image_shape[1]):
+                    tmp.append([i,j])
+                images_coords.append(tmp)
+
+            images_coords = np.array(images_coords)
+            images_coords = images_coords.transpose(2,0,1)
+            data_points = np.vstack([image.transpose(2,0,1),images_coords])
+            data_points = data_points.transpose(1,2,0)
+            print(data_points.shape)
+            centroids = kmeanspp(data_points,centroid_num)
+        else:
+            centroids = kmeanspp(image,centroid_num)
+    else:
+        centroids = np.random.rand(centroid_num,3)
+        centroids *= 255
+        centroids = centroids.astype(np.uint8)
+
+        centroids_coords = np.random.rand(centroid_num,2)
+        centroids_coords[:,0] *=image_shape[0]
+        centroids_coords[:,1] *= image_shape[1]
+        centroids_coords = centroids_coords.astype(np.uint8)
+
+        if using_coords:
+            centroids = np.hstack((centroids,centroids_coords))
+
+
+    # main iterations:
+    for i in range(iteration_num):
+
+        clusters = dict()
+        for m in range(centroid_num):
+            clusters[m] = []
+
+        # E - step
+        for j, row in enumerate(image):
+            for k, channels in enumerate(row):
+                if using_coords:
+                    point = np.hstack((channels,j,k))
+                else:
+                    point = channels
+                current_idx,_ = nearest_centroid(centroids,point)
+                assignments[j][k] = current_idx
+                # record assignments
+                clusters[current_idx].append(point)
+
+        # M - step
+        # re-generate new centroids by the mean of points in cluster
+        new_centroids = []
+        for centroid_idx, points in clusters.items():
+            if points:
+                current_new_centroid = np.mean(points, axis=0)
+            else:
+                # remain
+                current_new_centroid = centroids[centroid_idx]
+            new_centroids.append(current_new_centroid)
+        centroids = np.array(new_centroids)
+
+    if using_coords:
+        return clusters
+    else:
+        return clusters,assignments
