@@ -42,7 +42,7 @@ def check_duplicate(sample, arrs):
 
 def nearest_centroid(centroids,point):
     distance_min = np.inf
-    ans_idx = -1
+    ans_idx = -2
     for i,centroid in enumerate(centroids):
         distance = float(np.linalg.norm(centroid-point))
         if distance < distance_min:
@@ -52,7 +52,7 @@ def nearest_centroid(centroids,point):
     return ans_idx, distance_min
 
 
-def my_kmeans(image, centroid_num, using_coords=True, using_kmeanspp=False,iteration_num=100):
+def my_kmeans(image, centroid_num, using_coords=True, using_kmeanspp=False,iteration_num=10):
     """
     my k-mean clustering algorithm as well as some adv args
     :param image: np array of 3 channels
@@ -65,7 +65,7 @@ def my_kmeans(image, centroid_num, using_coords=True, using_kmeanspp=False,itera
     clusters = dict()
     image_shape = image.shape
     assignments = np.zeros(image_shape[:2])
-    assignments -= 1
+    assignments -= 2
     # initialize
     if using_kmeanspp:
         if using_coords:
@@ -100,6 +100,11 @@ def my_kmeans(image, centroid_num, using_coords=True, using_kmeanspp=False,itera
 
     # main iterations:
     for i in range(iteration_num):
+
+        clusters = dict()
+        for m in range(centroid_num):
+            clusters[m] = []
+
         # E - step
         for j, row in enumerate(image):
             for k, channels in enumerate(row):
@@ -109,21 +114,10 @@ def my_kmeans(image, centroid_num, using_coords=True, using_kmeanspp=False,itera
                     point = channels
                 current_idx,_ = nearest_centroid(centroids,point)
                 assignments[j][k] = current_idx
+                # record assignments
+                clusters[current_idx].append(point)
 
         # M - step
-        clusters = dict()
-        for m in range(centroid_num):
-            clusters[m] = []
-
-        # record assignments
-        for j, row in enumerate(image):
-            for k, channels in enumerate(row):
-                if using_coords:
-                    point = np.hstack((channels,j,k))
-                else:
-                    point = channels
-                clusters[assignments[j][k]].append(point)
-
         # re-generate new centroids by the mean of points in cluster
         new_centroids = []
         for centroid_idx, points in clusters.items():
@@ -135,7 +129,10 @@ def my_kmeans(image, centroid_num, using_coords=True, using_kmeanspp=False,itera
             new_centroids.append(current_new_centroid)
         centroids = np.array(new_centroids)
 
-    return clusters
+    if using_coords:
+        return clusters
+    else:
+        return clusters,assignments
 
 
 
@@ -149,39 +146,45 @@ if __name__ == '__main__':
     print(f"mandm size {mandm_image.shape}")
 
     # cluster with coords and without kmeans++
-    ans_clusters = my_kmeans(mandm_image,7,using_kmeanspp=True)
-    ans_clusters_no_coord = my_kmeans(mandm_image, 7, using_kmeanspp=True,using_coords=False)
-    # # visualize
-    # clustered_image = np.zeros(mandm_image.shape)
-    # clustered_image -= 1
-    # clustered_image = clustered_image.astype(np.uint8)
-    # for centroid_idx, points in ans_clusters.items():
-    #     print(len(points))
-    #     if points:
-    #         print(np.array(points).shape)
-    #         centroid_mean = np.mean(points,axis=0)
-    #         L,a,b,_,_ = centroid_mean
-    #         centroid_Lab = np.array([L, a, b]).astype(np.uint8)
-    #         for _,_,_,x,y in points:
-    #             clustered_image[x][y] = centroid_Lab
-    #
-    # clustered_image = cv2.cvtColor(clustered_image,cv2.COLOR_LAB2RGB)
-    # plt.imshow(clustered_image)
-    # plt.show()
+    ans_clusters = my_kmeans(mandm_image,7,using_kmeanspp=True,using_coords=True)
     # visualize
-    clustered_image_no_coord = np.zeros(mandm_image.shape)
-    clustered_image_no_coord -= 1
-    clustered_image = clustered_image_no_coord.astype(np.uint8)
-    for centroid_idx, points in ans_clusters_no_coord.items():
+    clustered_image = np.zeros(mandm_image.shape)
+    clustered_image -= 1
+    clustered_image = clustered_image.astype(np.uint8)
+    for centroid_idx, points in ans_clusters.items():
         print(len(points))
         if points:
             print(np.array(points).shape)
-            centroid_mean = np.mean(points, axis=0)
-            centroid_Lab = np.array(centroid_mean).astype(np.uint8)
-            for _, _, _, x, y in points:
+            centroid_mean = np.mean(points,axis=0)
+            L,a,b,_,_ = centroid_mean
+            centroid_Lab = np.array([L, a, b]).astype(np.uint8)
+            for _,_,_,x,y in points:
                 clustered_image[x][y] = centroid_Lab
 
-    clustered_image = cv2.cvtColor(clustered_image, cv2.COLOR_LAB2RGB)
+    clustered_image = cv2.cvtColor(clustered_image,cv2.COLOR_LAB2RGB)
     plt.imshow(clustered_image)
     plt.show()
+
+
+    # # visualize
+    # ans_clusters_no_coord, ans_assignments = my_kmeans(mandm_image, 7, using_kmeanspp=False, using_coords=False)
+    # print(ans_assignments)
+    # clustered_image_no_coord = np.zeros(mandm_image.shape)
+    # clustered_image_no_coord -= 1
+    # clustered_image = clustered_image_no_coord.astype(np.uint8)
+    # # calculate the mean colour of each cluster
+    # cluster_mean_colour = dict()
+    # for centroid_idx, points in ans_clusters_no_coord.items():
+    #     if points:
+    #         centroid_mean = np.mean(points,axis=0)
+    #         centroid_Lab = np.array(centroid_mean).astype(np.uint8)
+    #         cluster_mean_colour[centroid_idx] = centroid_Lab
+    #
+    # for x,row in enumerate(ans_assignments):
+    #     for y,cluster_idx in enumerate(row):
+    #         clustered_image_no_coord[x][y] = cluster_mean_colour[cluster_idx]
+    #
+    # clustered_image = cv2.cvtColor(clustered_image, cv2.COLOR_LAB2RGB)
+    # plt.imshow(clustered_image)
+    # plt.show()
 
