@@ -3,8 +3,10 @@
     <words>
       <w>arrs</w>
       <w>coords</w>
+      <w>eigenface</w>
       <w>kmeans</w>
       <w>kmeanspp</w>
+      <w>preprocess</w>
     </words>
   </dictionary>
 </component>

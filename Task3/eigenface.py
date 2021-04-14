@@ -3,11 +3,8 @@ import cv2
 import numpy as np
 import math
 from matplotlib import pyplot as plt
+from matplotlib.pyplot import imread
 
-
-# TODO
-# A_pp is images.
-A_pp = None
 
 
 def preprocess(A_pp):
@@ -25,10 +22,6 @@ def preprocess(A_pp):
     return A, Q_norms, A_means
 
 
-# A, Q_norms, A_means = preprocess(A_pp)
-# print(A.shape)
-# print(Q_norms)
-# print(A_means)
 
 def eigen_faces(A_pp):
     C = None
@@ -43,25 +36,18 @@ def eigen_faces(A_pp):
     D = D.real
     C = C.real
 
-    #     C=C.astype(np.float64)
+
     F = A @ C
     F_norm = np.linalg.norm(F, axis=0, keepdims=True)
     F = F / F_norm
-    #     D=D.astype(np.float64)
+
     C = A.T @ F
-    return C, F, D, Q_norms, A_means
+    return A, C, F, D, Q_norms, A_means
 
 
-# # For the purposes of doing this assignment, this code isn't really here. Pretend it's engraved in rock.
-# C, F, D, Q_norms, A_means = eigen_faces(A_pp)
-# print('Orthogonality Check (should be close to 0): ', F[:, 0].T @ F[:, 1])
-# print('Unit Vector Check: ', math.isclose(F[:, 0].T @ F[:, 0], 1))
-# print(C.shape)
-# print(F.shape)
 
-
-def reconstruct_image(Img, F, Q_norms, A_means):
-    R = np.zeros((243, 320))
+def reconstruct_image(Img, F, Q_norms, A_means,A):
+    R = np.zeros((231, 195))
 
 
     #     calculate C, which is AT@A's eigenvector matrix
@@ -74,7 +60,7 @@ def reconstruct_image(Img, F, Q_norms, A_means):
         R_vector = R_vector + (Img[j] * Q_norms * F[:, j].reshape(-1, 1))
 
     R_vector += A_means
-    R = R_vector.reshape((243, 320), order="F")
+    R = R_vector.reshape((231, 195), order="F")
 
     return R
 
@@ -86,11 +72,11 @@ def reduce_dimensionality(image_vector, k, F, D, A_means, Q_norms):
 
 
     #     k:k paras int
-    #     F:eigen Face， A@A.T   eigenvector 77760,165
-    #     D: A.T@A eigenvalue 165,
-    #     A_means: average face lookings 77760,1
-    #     Q_norms: image normalized       77760,1
-    #     image_vector: pic we need to compress ,77760,1
+    #     F:eigen Face， A@A.T   eigenvector 45045,135
+    #     D: A.T@A eigenvalue 135,
+    #     A_means: average face lookings 45045,1
+    #     Q_norms: image normalized       45045,1
+    #     image_vector: pic we need to compress ,45045,1
 
     #     intialize image_vector
 
@@ -101,14 +87,11 @@ def reduce_dimensionality(image_vector, k, F, D, A_means, Q_norms):
     F_k = F[:, 0:k]
 
     compressed_parameter = F_k.T @ image_normalized
-    compressed_parameter_s = np.zeros((165, 1))
-    for i in range(165):
+    compressed_parameter_s = np.zeros((135, 1))
+    for i in range(135):
         if (i < k):
             compressed_parameter_s[i] = compressed_parameter[i]
 
-    #     compressed_parameter=np.zeros((165,1))
-    #     for i in range(k):
-    #         compressed_parameter[i]=F_k.T[i]@image_vector
 
     #     handle p
     d_sum = np.sum(D)
@@ -120,39 +103,78 @@ def reduce_dimensionality(image_vector, k, F, D, A_means, Q_norms):
     print(image_normalized.shape)
     print(compressed_parameter.shape)
     print(F_k.shape)
-    #     compressed_image=A_means+F_k@compressed_parameter
-    #     print(compressed_image.shape)
+
 
     return compressed_parameter_s, p
 
-
-# # Display Code. Leave it alooooooooooone.
-# # You can mess with settings, but return them to their original values.
-# compressed_image, p = reduce_dimensionality(A_pp[:, Idx], 10, F, D, A_means, Q_norms)
-#
-# print('Variance Captured:', int(p * 100), '%')
-#
-# R_c = reconstruct_image(compressed_image, F, Q_norms, A_means)
-# plt.imshow(R_c)
-# print(np.amax(R_c), np.amin(R_c))
-# plt.show()
-# R_o = reconstruct_image(Img, F, Q_norms, A_means)
-# plt.imshow(R_o)
-# print(np.amax(R_o), np.amin(R_o))
-# plt.show()
-# print('Error (expect around 1700000 for k = 10, 0 for k = 165): \n', np.sum(np.abs(R_c - R_o)))
 
 
 if __name__ == '__main__':
     # load images
     yale_path = os.path.join("Yale-FaceA", "trainingset")
     yale_images = []
+    image_num = 0
     for image_name in os.listdir(yale_path):
+        image_num+=1
         image_path = os.path.join(yale_path,image_name)
-        image = cv2.imread(image_path)
-        yale_images.append(image)
-    print(f"yale images: {len(yale_images)}")
-    yale_images = np.array(yale_images)
-    print(yale_images.shape)
+        im = imread(image_path)
+        im = im.flatten('F')  # flatten im into a vector
+        yale_images.append(im)
+    yale_images = np.stack(yale_images).T  # build a matrix where each column is a flattened image
 
+    print(f"# of yale images: {len(yale_images)}")
+    print("image shape 231 X 195")
+    print(f"yale_images shape: {yale_images.shape}")
+    # plt.imshow(yale_images[:,0].reshape((231, 195),order='F'),cmap='gray')
+    # plt.show()
+
+    # preprocess
+    # A, Q_norms, A_means = preprocess(yale_images)
+    # print(A.shape)
+    # print(Q_norms.shape)
+    # print(A_means.shape)
+
+    # eigenface
+    A, C, F, D, Q_norms, A_means = eigen_faces(yale_images)
+    print('Orthogonality Check (should be close to 0): ', F[:, 0].T @ F[:, 1])
+    print('Unit Vector Check: ', math.isclose(F[:, 0].T @ F[:, 0], 1))
+    # print(C.shape)
+    # print(F.shape)
+
+
+    # MEAN FACE ANSWER
+    mean_face = A_means.reshape((231, 195),order='F')
+    print(F.shape)
+    print(C.shape)
+    # plt.imshow(mean_face,cmap='gray')
+    # plt.show()
+
+    Idx = 133
+    Img = (A[:, Idx]).T @ F
+    R = reconstruct_image(Img, F, Q_norms, A_means,A)
+    # plt.imshow(R,cmap='gray')
+    print(np.amax(R), np.amin(R))
+    # plt.show()
+
+
+    # R = np.zeros((231, 195))
+    # for c in range(195):
+    #     R[:, c] = (yale_images[:, Idx])[c * 231: (c + 1) * 231]
+    # plt.imshow(R,cmap='gray')
+    # print(np.amax(R), np.amin(R))
+    # plt.show()
+
+    compressed_image, p = reduce_dimensionality(yale_images[:, Idx], 10, F, D, A_means, Q_norms)
+
+    print('Variance Captured:', int(p * 100), '%')
+
+    R_c = reconstruct_image(compressed_image, F, Q_norms, A_means,A)
+    plt.imshow(R_c,cmap='gray')
+    print(np.amax(R_c), np.amin(R_c))
+    plt.show()
+    R_o = reconstruct_image(Img, F, Q_norms, A_means,A)
+    plt.imshow(R_o,cmap='gray')
+    print(np.amax(R_o), np.amin(R_o))
+    plt.show()
+    print('Error : \n', np.sum(np.abs(R_c - R_o)))
 
