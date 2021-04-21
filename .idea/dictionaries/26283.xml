@@ -3,10 +3,12 @@
     <words>
       <w>arrs</w>
       <w>coords</w>
+      <w>determinat</w>
       <w>eigenface</w>
       <w>kmeans</w>
       <w>kmeanspp</w>
       <w>preprocess</w>
+      <w>thresholding</w>
     </words>
   </dictionary>
 </component>
