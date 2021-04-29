@@ -180,6 +180,9 @@ if __name__ == '__main__':
     mandm_image = cv2.cvtColor(mandm_image, cv2.COLOR_BGR2LAB)
     print(f"mandm size {mandm_image.shape}")
 
+    peppers = cv2.imread(peppers_pth)
+    peppers = cv2.cvtColor(peppers, cv2.COLOR_BGR2LAB)
+
     # # 4 W/ COORDS
     # # cluster with coords and without kmeans++
     # ans_clusters = my_kmeans_coords(mandm_image,7,using_kmeanspp=True,iteration_num=10)

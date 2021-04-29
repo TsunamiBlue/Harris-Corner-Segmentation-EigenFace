@@ -2,9 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2a11b793-5fa4-445d-9d07-4902f41a927a" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/26283.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/26283.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/C-Lab-2 by u6579712.rtf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Task1/.ipynb_checkpoints/HarrisCorner-checkpoint.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Task1/HarrisCorner.ipynb" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/~$Lab-2 by u6579712.rtf" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Task1/HarrisCorner.py" beforeDir="false" afterPath="$PROJECT_DIR$/Task1/HarrisCorner.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CLab2 Task3.zip" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Task1.zip" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Task2.zip" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Task2/kmeans.py" beforeDir="false" afterPath="$PROJECT_DIR$/Task2/kmeans.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -27,7 +33,7 @@
   <component name="PropertiesComponent">
     <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="D:/COMP4660/ASS/ASS1" />
+    <property name="last_opened_file_path" value="D:/COMP4660/LAB/Lab6-20210429" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunDashboard">
